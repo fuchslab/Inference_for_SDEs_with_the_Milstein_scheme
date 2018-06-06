@@ -1,7 +1,7 @@
 # Inference for SDEs with the Milstein scheme
 This repository accompanies the article 
 
-Susanne Pieschner, Christiane Fuchs (2018) "Bayesian Inference for Diffusion Processes: Using Higher-Order Approximations for Transition Densities" 
+Susanne Pieschner, Christiane Fuchs (2018) *"Bayesian Inference for Diffusion Processes: Using Higher-Order Approximations for Transition Densities"* 
 
 available as preprint on arxiv.org.
 
@@ -40,7 +40,7 @@ The folder *simulation_study* contains the R-files, input and output files from 
 
 * `observation_generation_GBM.R` (/`observation_generation_CIR.R`) was used to sample the 100 trajectories of the GBM (/CIR) which are saved in one data file `GBM_obs.data` (`GBM_obs.data`) in the folder *GBM_alpha_1_sigma_2* (/*CIR_alpha_1_beta_1_sigma_0.25*) along with plots of the trajectories
 * `main_simulation_study.R` performs one estimation procedure for the parameters that are passed to it when the script is run and saves a data file of the output and some plots to *GBM_alpha_1_sigma_2/output* (/*CIR_alpha_1_beta_1_sigma_0.25/output*)
-* The simulation study was run on a computational grid which uses the Univa grid engine. The bash scripts `vary\_methods\_*.sh` were used to submit the individual jobs to the queue of this grid in a loop for the different parameter settings. Each job runs the script `execute_main_file.sh` which in turn runs `main_simulation_study.R` with the passed parameters.
+* The simulation study was run on a computational grid which uses the Univa grid engine. The bash scripts `vary_methods_*.sh` were used to submit the individual jobs to the queue of this grid in a loop for the different parameter settings. Each job runs the script `execute_main_file.sh` which in turn runs `main_simulation_study.R` with the passed parameters.
 * `aggregate_output.R`was used to aggregate the results from the individual jobs saved in *GBM_alpha_1_sigma_2/output* (/*CIR_alpha_1_beta_1_sigma_0.25/output*) and save them to the folder *aggregated_output*.
 
 ### *figures\_and\_tables*
