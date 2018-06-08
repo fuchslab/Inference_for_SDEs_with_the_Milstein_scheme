@@ -3,7 +3,7 @@ This repository accompanies the article
 
 Susanne Pieschner, Christiane Fuchs (2018) *"Bayesian Inference for Diffusion Processes: Using Higher-Order Approximations for Transition Densities"* 
 
-available as preprint on arxiv.org.
+available as preprint on [https://arxiv.org/abs/1806.02429](https://arxiv.org/abs/1806.02429).
 
 **Abstract**
 
