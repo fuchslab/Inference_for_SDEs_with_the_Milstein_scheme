@@ -42,6 +42,7 @@ The folder *simulation_study* contains the R-files, input and output files from 
 * `main_simulation_study.R` performs one estimation procedure for the parameters that are passed to it when the script is run and saves a data file of the output and some plots to *GBM_alpha_1_sigma_2/output* (/*CIR_alpha_1_beta_1_sigma_0.25/output*)
 * The simulation study was run on a computational grid which uses the Univa grid engine. The bash scripts `vary_methods_*.sh` were used to submit the individual jobs to the queue of this grid in a loop for the different parameter settings. Each job runs the script `execute_main_file.sh` which in turn runs `main_simulation_study.R` with the passed parameters.
 * `aggregate_output.R`was used to aggregate the results from the individual jobs saved in *GBM_alpha_1_sigma_2/output* (/*CIR_alpha_1_beta_1_sigma_0.25/output*) and save them to the folder *aggregated_output*.
+* `Appendix_E_Kullback_Leibler_divergence.R` contains the simulation study described in Appendix E to assess the magnitude of the calculated values for the KL-divergence.
 
 ### *figures\_and\_tables*
 The folder *figures\_and\_tables* contains the R-files to generate the figures and the table for the article.
