@@ -277,9 +277,9 @@ grid.text("MAP \nestimate", x = unit(.93*sc + offs, "npc"), y = unit(.0525, "npc
 Brack(.42*sc + offs,line_bracket_update_method,.07*sc + offs,line_bracket_update_method,.012)
 Brack(.78*sc + offs,line_bracket_update_method,.43*sc + offs,line_bracket_update_method,.012)
 
-grid.text("proposal density:", x = unit(.06, "npc"), y = unit(line_prop_dens, "npc"), gp = gpar(fontface="italic"))
-grid.text("likelihood function:", x = unit(.06 , "npc"), y = unit(line_trans_dens, "npc"), gp = gpar(fontface="italic"))
-grid.text("proposal method:", x = unit(.06 , "npc"), y = unit(line_update_method, "npc"), gp = gpar(fontface="italic"))
+grid.text("proposal density:", x = unit(.064, "npc"), y = unit(line_prop_dens, "npc"), gp = gpar(fontface="italic"))
+grid.text("likelihood function:", x = unit(.06, "npc"), y = unit(line_trans_dens, "npc"), gp = gpar(fontface="italic"))
+grid.text("proposal method:", x = unit(.0625 , "npc"), y = unit(line_update_method, "npc"), gp = gpar(fontface="italic"))
 
 # y axis labels
 Brack(line_bracket_estimate, 0.45*sc_v + offs_v_brack ,line_bracket_estimate, .05*sc_v + offs_v_brack ,.012, orientation = "vertical")
@@ -417,9 +417,9 @@ grid.text("MAP \nestimate", x = unit(.93*sc + offs, "npc"), y = unit(.0525, "npc
 Brack(.42*sc + offs,line_bracket_update_method,.07*sc + offs,line_bracket_update_method,.012)
 Brack(.78*sc + offs,line_bracket_update_method,.43*sc + offs,line_bracket_update_method,.012)
 
-grid.text("proposal density:", x = unit(.06, "npc"), y = unit(line_prop_dens, "npc"), gp = gpar(fontface="italic"))
-grid.text("likelihood function:", x = unit(.06 , "npc"), y = unit(line_trans_dens, "npc"), gp = gpar(fontface="italic"))
-grid.text("proposal method:", x = unit(.06 , "npc"), y = unit(line_update_method, "npc"), gp = gpar(fontface="italic"))
+grid.text("proposal density:", x = unit(.064, "npc"), y = unit(line_prop_dens, "npc"), gp = gpar(fontface="italic"))
+grid.text("likelihood function:", x = unit(.06, "npc"), y = unit(line_trans_dens, "npc"), gp = gpar(fontface="italic"))
+grid.text("proposal method:", x = unit(.0625 , "npc"), y = unit(line_update_method, "npc"), gp = gpar(fontface="italic"))
 
 # y axis labels
 Brack(line_bracket_estimate, 0.45*sc_v + offs_v_brack ,line_bracket_estimate, .05*sc_v + offs_v_brack ,.012, orientation = "vertical")
