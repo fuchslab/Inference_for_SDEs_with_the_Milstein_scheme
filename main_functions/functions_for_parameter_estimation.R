@@ -115,19 +115,72 @@ dMilstein <- function(y, x, theta, delta_t){
   }
 }
 
-dMBEuler <- function(y, x_k, x_b, theta, delta_t, left_index, right_index){
-  return(dnorm(y, mean = x_k + (x_b - x_k) / (right_index - left_index),
-              sd = sqrt( (right_index - left_index - 1) / (right_index - left_index) *
-                            diffusion_fct(x_k, theta) ^ 2 * delta_t)))
-}
-
 rMBEuler <- function(n, x_k, x_b, theta, delta_t, left_index, right_index, precision){
   return(rnorm(n, mean =  x_k + (x_b - x_k) / (right_index - left_index),
                sd = sqrt( (right_index - left_index - 1) / (right_index - left_index) *
                             diffusion_fct(x_k, theta) ^ 2 * delta_t)))
 }
 
+dMBEuler <- function(y, x_k, x_b, theta, delta_t, left_index, right_index){
+  return(dnorm(y, mean = x_k + (x_b - x_k) / (right_index - left_index),
+              sd = sqrt( (right_index - left_index - 1) / (right_index - left_index) *
+                            diffusion_fct(x_k, theta) ^ 2 * delta_t)))
+}
 
+rDBMilstein <- function(n, x_k, x_b, theta, delta_t, left_index, right_index, precision){
+  dB <- rnorm(n = n, mean = 0, sd = sqrt(delta_t)) # increment of a Brownian motion
+  drift_DBMilstein_times_time_step <- (x_b - x_k) / (right_index - left_index)
+  diffusion_DBMilstein <- sqrt((right_index - left_index - 1) / (right_index - left_index)) *
+                                  diffusion_fct(x_k, theta)
+  diffusion_derivative_DBMilstein <- sqrt((right_index - left_index - 1) / (right_index - left_index)) *
+    diffusion_fct_derivative(x_k, theta)
+  return( x_k + drift_DBMilstein_times_time_step + diffusion_DBMilstein * dB +
+            1/2 * diffusion_DBMilstein * diffusion_derivative_DBMilstein * (dB ^ 2 - delta_t))
+}
+
+
+dDBMilstein <- function(y, x_k, x_b, theta, delta_t, left_index, right_index){
+  
+  if(length(x_k) == 1){
+    drift <-  (x_b - x_k) / ((right_index - left_index) * delta_t)
+    diffusion <- sqrt((right_index - left_index - 1) / (right_index - left_index)) *
+      diffusion_fct(x_k, theta)
+    diffusionDeriv <- sqrt((right_index - left_index - 1) / (right_index - left_index)) *
+      diffusion_fct_derivative(x_k, theta)
+    
+    if(diffusion*diffusionDeriv > 0){
+      min_y <- x_k - 1/2 * diffusion / diffusionDeriv +
+        (drift - 1/2 * diffusion * diffusionDeriv) * delta_t
+      condition <- (y > min_y)
+    }else{
+      max_y <- x_k - 1/2 * diffusion / diffusionDeriv +
+        (drift - 1/2 * diffusion * diffusionDeriv) * delta_t
+      condition <- (y < max_y)
+    }
+    
+    result <- vector(mode = 'numeric', length(y)) # contains only zeros for now
+    # only the components that fulfill the condition will be replaced
+    A <- sqrt( diffusion ^ 2 + 2 * diffusion * diffusionDeriv *
+                 (y[condition] - x_k - (drift - 1/2 * diffusion * diffusionDeriv) * delta_t))
+    B <-  - (diffusion + diffusionDeriv *
+               (y[condition] - x_k - (drift - 1/2 * diffusion * diffusionDeriv) * delta_t))
+    C <- diffusion * diffusionDeriv ^ 2 * delta_t
+    dens <- (exp((B - A) / C) + exp((B + A) / C)) / (sqrt(2 * pi * delta_t) * A)
+    
+    result[condition] <- dens
+    return(result)
+  }else{
+    if(length(y) != length(x_k)){
+      error("input vectors for the left point and the next point are not of same length!")
+    }else{
+      result <- vector(mode = "numeric", length = length(x_k))
+      for (i in 1:length(x_k)){
+        result[i] <- dDBMilstein(y[i], x_k[i], theta, delta_t)
+      }
+      return(result)
+    }
+  }
+}
 
 #-----------------------------------------------------------------------------------------------------------------
 # uses log-transformed densities to calculate the acceptance probabilities
@@ -191,7 +244,7 @@ update_path <- function(a, b, delta_t, tau, Y_obs, tpoints, Y_imp, method,
       accept_prob <- min(c(1, exp(sum1)))
 
     } # end if "leftConditioned"
-    else if ( method == "MB"){ # Modified Bridge
+    else if ( method == "MB" || method == "DBMilstein" ){ # Modified Bridge and Diffusion Bridge Milstein
       # initialize variable for the terms of the log proposal densities
       # which is needed for the acceptance probability
       denominator_prop_dens <- vector(mode = "numeric", length = 0)
@@ -228,14 +281,17 @@ update_path <- function(a, b, delta_t, tau, Y_obs, tpoints, Y_imp, method,
             }
             # terms of the quotient of the log proposal densities
             # (to calculate the acceptance probability later)
+            prop_dens_current <- 
+              env$dMBpropDens(y = Y_imp[current_index + 1], x_k = Y_imp[current_index],
+                              x_b = Y_imp[b_right], theta = theta, delta_t = delta_t,
+                              left_index = current_index, right_index = b_right)
             numerator_prop_dens <-
-              c(numerator_prop_dens,
-                log( env$dMBpropDens(y = Y_imp[current_index + 1], x_k = Y_imp[current_index],
-                                     x_b = Y_imp[b_right], theta = theta, delta_t = delta_t,
-                                     left_index = current_index, right_index = b_right)))
+              c(numerator_prop_dens, 
+                ifelse(is.na(prop_dens_current), -Inf, log(prop_dens_current)))
+            
             denominator_prop_dens <-
               c(denominator_prop_dens,
-                log( env$dMBpropDens(y = proposal[current_index + 1], x_k = Y_imp[current_index],
+                log( env$dMBpropDens(y = proposal[current_index + 1], x_k = proposal[current_index],
                                      x_b = Y_imp[b_right], theta = theta, delta_t = delta_t,
                                      left_index = current_index, right_index = b_right)))
           }else{# if rMBMilstein returns NA, the set of feasible points is empty -> switch to MBEuler
@@ -247,7 +303,7 @@ update_path <- function(a, b, delta_t, tau, Y_obs, tpoints, Y_imp, method,
             while(proposal[current_index + 1] < 0){
               env$countNegPointProposals()
               proposal[current_index + 1] <-
-                rMBEuler(n = 1, x_k = proposal[current_index], x_b = Y_imp[b_right],
+                rMBEuler(n = 1, x_k = proposal[current_index], x_b = proposal[b_right],
                          theta = theta, delta_t = delta_t, left_index = current_index,
                          right_index = b_right)
             }
@@ -282,7 +338,7 @@ update_path <- function(a, b, delta_t, tau, Y_obs, tpoints, Y_imp, method,
       # acceptance probability (Modified Bridge)
       accept_prob <- min(c(1, exp(sum1) ))
 
-    } # end if Modified Bridge
+    } # end if Modified Bridge and Diffusion Bridge Milstein
 
     if(is.na(accept_prob)|is.null(accept_prob)) browser()
 

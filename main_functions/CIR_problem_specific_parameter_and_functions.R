@@ -62,7 +62,7 @@ rprior_theta <- function(n){
   theta <- matrix(vector(mode = "numeric", length = len_theta * n), ncol = n)
   # alpha
   theta[1, ] <- rep(alpha,n)
-  # gamma
+  # beta
   theta[2, ] <- rinvgamma(n = n, shape = kappa_b, scale = nu_b)
   # sigma^2
   theta[3, ] <- rinvgamma(n = n, shape = kappa_s, scale = nu_s)
@@ -115,13 +115,12 @@ dMBMilstein <- function(y, x_k, x_b, theta, delta_t, left_index, right_index,
   drift <- drift_fct(x_k, theta)
   diffusion <- diffusion_fct(x_k, theta)
   diffusionDeriv <- diffusion_fct_derivative(x_k, theta)
-
   ## determine the limits of the support of the density
   # limit 1 for step k to k+1
   min_y1 <- x_k - 1/2 * diffusion / diffusionDeriv +
     (drift - 1/2 * diffusion * diffusionDeriv) * delta_t
   # more efficient version not used here for comparability to GBM runs
-  #min_y1 <- (theta[1] * (theta[2] - x_k) - theta[3]/4) * delta_t
+  # min_y1 <- (theta[1] * (theta[2] - x_k) - theta[3]/4) * delta_t
   # limit 2 for step k+1 to b
   # simplified CIR-specific !!!!  limits for y
   # assumes positive state space => diffusion > 0
