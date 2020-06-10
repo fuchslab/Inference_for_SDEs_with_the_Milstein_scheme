@@ -1,0 +1,27 @@
+## M =  `r M`
+
+```{r load_aggregated_Stan_output, message=FALSE}
+invisible(list2env(load_aggregated_Stan_output(obsFolder, M), .GlobalEnv))
+# contains results_separate_Stan and resultsOverall_Stan
+
+```
+
+`r m=1`
+```{r Stan_m_1, echo=FALSE, results='asis'}
+res <- knitr::knit_child( 'template_summary_subsection_M_m.Rmd', quiet = TRUE)
+cat(unlist(res), sep = '\n')
+```
+
+\newpage
+`r m=2`
+```{r Stan_m_2, echo=FALSE, results='asis'}
+res <- knitr::knit_child( 'template_summary_subsection_M_m.Rmd', quiet = TRUE)
+cat(unlist(res), sep = '\n')
+```
+
+\newpage
+`r m=5`
+```{r Stan_m_5, echo=FALSE, results='asis'}
+res <- knitr::knit_child( 'template_summary_subsection_M_m.Rmd', quiet = TRUE)
+cat(unlist(res), sep = '\n')
+```

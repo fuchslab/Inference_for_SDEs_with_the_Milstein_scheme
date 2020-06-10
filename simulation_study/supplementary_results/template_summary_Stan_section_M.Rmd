@@ -1,0 +1,104 @@
+## M =  `r M`
+
+```{r load_aggregated_Stan_output, message=FALSE}
+#res_list <- load_aggregated_output(obsFolder = obsFolder, M = M, m = m)
+#list2env(load_aggregated_output(obsFolder = obsFolder, M = M, m = m), .GlobalEnv)
+
+
+invisible(list2env(load_aggregated_Stan_output(obsFolder, M), .GlobalEnv))
+# contains results_separate_Stan and resultsOverall_Stan
+
+```
+
+
+```{r missing, echo=FALSE}
+stan_res_missing <- sum(is.na(resultsOverall_Stan[,1]))
+total_missing_stan <- total_missing_stan + stan_res_missing
+```
+
+
+
+\# of missing results: `r stan_res_missing`
+
+\# Rhat > 1.01: `r sum(results_separate_Stan[,"Rhat", ] > 1.01, na.rm = TRUE)` (out of 200)
+
+range of max. duration in seconds: 
+(`r round(range(resultsOverall_Stan[,"maxDuration"], na.rm = TRUE), digits = 1)`),
+ median: `r round(median(resultsOverall_Stan[,"maxDuration"], na.rm = TRUE), digits = 1)`
+
+median multivarESS: `r round(median(resultsOverall_Stan[,"multivarESS"], na.rm = TRUE), digits = 0) `
+
+```{r stan_plots}
+plot_Stan_hist <- function(results_separate_Stan, resultsOverall_Stan=NULL, result, 
+                           third_plot=NULL, add_true = FALSE){
+  par(mar=c(3, 4, 0.1, 2))
+  num_plots <- 2 + length(third_plot)
+  layout(matrix(1:num_plots, ncol = num_plots))
+  for(i in 1:length(par_names)){
+    hist(results_separate_Stan[, result, i], main = '', xlab = '', las = 1)
+    title(xlab = par_names[i], cex.lab = 1, line = 2)
+    if(add_true){
+      abline(v=true_values[i], col = 2)
+      legend("topright", legend = "true value", col = 2, bty = "n", lty = 1, cex = .7, seg.len = 1)
+    }
+  }
+  if(length(third_plot)){
+    hist(resultsOverall_Stan[, third_plot], main = '', xlab = '', las = 1)
+    title(xlab = third_plot, cex.lab = 1, line = 2)
+  }
+}
+
+plot_Stan_density <- function(results_separate_Stan, resultsOverall_Stan=NULL, result, 
+                           third_plot=NULL, add_true = FALSE){
+  par(mar=c(3, 4, 0.1, 2))
+  num_plots <- 2 + length(third_plot)
+  layout(matrix(1:num_plots, ncol = num_plots))
+  for(i in 1:length(par_names)){
+    plot(density(results_separate_Stan[, result, i], na.rm = TRUE), main = '', xlab = '', las = 1)
+    title(xlab = par_names[i], cex.lab = 1, line = 2)
+    if(add_true){
+      abline(v=true_values[i], col = 2)
+      legend("topright", legend = "true value", col = 2, bty = "n", lty = 1, cex = .7, seg.len = 1)
+    }
+  }
+  if(length(third_plot)){
+    plot(density(resultsOverall_Stan[, third_plot], na.rm = TRUE), main = '', xlab = '', las = 1)
+    title(xlab = third_plot, cex.lab = 1, line = 2)
+  }
+}
+
+fig_height_2p <- 2
+fig_height_3p <- 1.8
+```
+
+
+The following sections show density plots of the respective statistic calculated for the `r N` simulated datasets.
+
+#### Posterior mean
+```{r mean_stan, fig.height=fig_height_2p}
+#plot_Stan_hist(results_separate_Stan, resultsOverall_Stan, "mean", third_plot=NULL)
+plot_Stan_density(results_separate_Stan, resultsOverall_Stan, "mean", add_true = TRUE)
+```
+
+#### Posterior median
+```{r median_stan, fig.height=fig_height_2p}
+plot_Stan_density(results_separate_Stan, resultsOverall_Stan, "median", add_true = TRUE)
+```
+
+#### Optimized value
+```{r opt_result_stan, fig.height=fig_height_2p}
+plot_Stan_density(results_separate_Stan, resultsOverall_Stan, "opt_result", add_true = TRUE)
+```
+
+\newpage
+#### Posterior variance and covariance
+```{r variance_stan, fig.height=fig_height_3p}
+plot_Stan_density(results_separate_Stan, resultsOverall_Stan, "variance", 
+                  third_plot = "covariance")
+```
+
+#### Effective sample size
+```{r ESS_stan, fig.height=fig_height_3p}
+plot_Stan_hist(results_separate_Stan, resultsOverall_Stan, "ESS_coda", 
+                  third_plot = "multivarESS")
+```

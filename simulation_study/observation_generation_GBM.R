@@ -4,7 +4,7 @@
 #
 #  which fulfills the SDE dX_t = alpha*X_t*dt + sigma*X_t*dB_t, X_0=x_0
 
-theta <- matrix(c(c(1, 2), c(1, 0.25), c(5, 2)), ncol = 3)
+theta <- matrix(c(c(1, 2), c(1, 4), c(1, 9)), ncol = 3)
 
 set.seed(242)
 
@@ -37,7 +37,8 @@ for (k in 1:ncol(theta)){
   estim_seeds <- sample(1:10^4,N)
 
   # save results
-  output_folder <- paste('GBM_alpha_', true_theta[1], "_sigma_", true_theta[2], sep='')
+  output_folder <- paste('simulation_study/GBM_alpha_', true_theta[1], 
+                         "_sigma_", true_theta[2],  "_x0_", x_0, sep='')
   # data
   if(!dir.exists(output_folder))
   {
@@ -48,25 +49,35 @@ for (k in 1:ncol(theta)){
 
   pdf(paste(output_folder, '/',  "GBM_obs", '.pdf', sep='') )
   plot_color <- rainbow(N)
-  plot(tau, Y_obs[,1], type = 'l', col = plot_color[1], ylim = c(min(Y_obs), max(Y_obs)))
+  plot(tau, Y_obs[,1], type = 'l', col = plot_color[1],  ylab = "Y_obs",
+       ylim = c(min(Y_obs), max(Y_obs)))
   title(paste("GBM with alpha = ", true_theta[1], " and sigma^2 = ", true_theta[2],
               "\n x_0 = ", x_0, ", seed = ", obs_seed, sep = ''))
+  for(l in 2:N){
+    lines(tau, Y_obs[,l], col = plot_color[l])
+  }
+
+  plot_color <- rainbow(N)
+  plot(tau, Y_obs[,1], type = 'l', col = plot_color[1], ylab = "Y_obs",
+       ylim = c(min(Y_obs), max(Y_obs)), log = c("y"))
+  title(paste("GBM with alpha = ", true_theta[1], " and sigma^2 = ", true_theta[2],
+              "\n x_0 = ", x_0, ", seed = ", obs_seed, "\n log scale", sep = ''))
   for(l in 2:N){
     lines(tau, Y_obs[,l], col = plot_color[l])
   }
   r = dev.off()
 
 
-  # save plots of individual paths
-  output_folder <- paste('GBM_alpha_', true_theta[1], "_sigma_", true_theta[2], sep='')
+  # save plots of individual_paths
   # data
-  if(!dir.exists(paste(output_folder, "/individual paths", sep='')))
+  if(!dir.exists(paste(output_folder, "/individual_paths", sep='')))
   {
-    dir.create(paste(output_folder, "/individual paths", sep=''))
+    dir.create(paste(output_folder, "/individual_paths", sep=''))
   }
   for( r in 1:N){
-    pdf(paste(output_folder, "/individual paths", '/',  "GBM_obs", r, '.pdf', sep='') )
-    plot(tau, Y_obs[,r], type = 'l', col = plot_color[r], ylim = c(min(Y_obs), max(Y_obs)))
+    pdf(paste(output_folder, "/individual_paths", '/',  "GBM_obs", r, '.pdf', sep='') )
+    plot(tau, Y_obs[,r], type = 'l', col = plot_color[r],  ylab = "Y_obs",
+         ylim = c(min(Y_obs), max(Y_obs)))
     title(paste("GBM with alpha = ", true_theta[1], " and sigma^2 = ", true_theta[2],
                 "\n x_0 = ", x_0, ", seed = ", obs_seed, sep = ''))
     r = dev.off()

@@ -1,0 +1,259 @@
+### m =  `r m` 
+<!-- (M = `r M`) -->
+
+```{r load_aggregated_Stan_output, message=FALSE}
+#res_list <- load_aggregated_output(obsFolder = obsFolder, M = M, m = m)
+invisible(list2env(load_aggregated_output(obsFolder = obsFolder, M = M, m = m), .GlobalEnv))
+# contains results_separate_all and resultsOverall_all
+
+#invisible(list2env(load_aggregated_Stan_output(obsFolder, M), .GlobalEnv))
+# contains results_separate_Stan and resultsOverall_Stan
+
+```
+
+
+
+```{r, comment=NA, fig.height=2}
+res_missing <- colSums(is.na(results_separate_all[,1,1,]))
+
+if(any(res_missing)){
+  total_missing <- total_missing + sum(res_missing)
+  cat("# of missing results: ")
+  knitr::kable(t(res_missing))
+}
+
+if(m > 1){
+  nMBSwitchToEuler <- round(mean(resultsOverall_all[,"nMBSwitchToEuler", "MB_td_M_pd_M"], na.rm = TRUE))
+  cat(paste("mean of # of switching to Euler for MB_td_Milstein_pd_Milstein: ", 
+            nMBSwitchToEuler, "\n", sep = ""))
+  cat(" \n")
+  cat("total # of negative proposals: ")
+  neg_prop <- t(colSums(resultsOverall_all[ ,"nNegPointProposals", ], na.rm = TRUE))
+  knitr::kable(neg_prop)
+}
+```
+
+
+```{r, comment=NA, fig.height=2}
+
+if(m > 1 && any(neg_prop)){
+  cat(" \n")
+  cat("ratio of negative proposals and number of iterations: ")
+  ratio_table <- rbind(apply(resultsOverall_all[ ,"nNegPointProposals", ]/resultsOverall_all[ ,"numIterations", ],
+                             2, range, na.rm = TRUE),
+                       apply(resultsOverall_all[ ,"nNegPointProposals", ]/resultsOverall_all[ ,"numIterations", ],
+                             2, median, na.rm = TRUE),
+                       apply(resultsOverall_all[ ,"nNegPointProposals", ]/resultsOverall_all[ ,"numIterations", ],
+                             2, mean, na.rm = TRUE))
+  rownames(ratio_table) <- c("min", "max", "median", "mean")
+  knitr::kable(ratio_table)
+}
+```
+
+```{r plot_functions, comment=NA}
+
+plot_discrepancy_density <- function(results_separate_all, resultsOverall_all=NULL,
+                                     results_separate_Stan, resultsOverall_Stan=NULL, 
+                                     result, third_plot=NULL){
+  plot_discrep <- function(discrepancy, xlab){
+    # estimate density for each method with the same bandwidth
+    bandwidths <- apply(discrepancy, 2, function(x) density(x, na.rm = TRUE)$bw)
+    bw <- mean(bandwidths)
+    densities <- apply(discrepancy, 2, function(x) density(x, na.rm = TRUE, bw = bw))
+    x_range <- range(unlist(lapply(densities, function(x) x[["x"]])))
+    y_range <- range(unlist(lapply(densities, function(x) x[["y"]])))
+    
+    # # plot the densities of the diffferent methods in the same window
+    # plot(NULL, xlim = x_range, ylim = y_range, main = '', xlab = '', las = 1, ann = FALSE)
+    # title(xlab = xlab, cex.lab = 1, line = 2)
+    # num_methods <- length(densities)
+    # for(l in 1:num_methods){
+    #   lines(densities[[l]], col = l, lty = l)
+    # }
+    # return(densities)
+    
+    if(m > 1){
+      v_col <- c(2,1,3,4)
+      v_lty <- c(4,2,3, 1)
+    }else{
+      v_col <- c(1,4)
+      v_lty <- c(2,1)
+    }
+    
+    # plot the densities of the diffferent methods in the same window
+    plot(NULL, xlim = x_range, ylim = y_range*1.1, main = '', xlab = '', las = 1, ann = FALSE)
+
+    title(xlab = "Deviation", cex.lab = 1, line = 2.2)
+    if(result == "mean"){
+      title(ylab = paste0("m = ", m), cex.lab = 1.4, line = 3, font = 2, las = 1)
+    }
+    num_methods <- length(densities)
+
+    for(l in 1:num_methods){
+      lines(densities[[l]], col = v_col[l], lty = v_lty[l], xlim = x_range)
+    }
+    return(densities)
+  }
+  
+  num_methods <- dim(results_separate_all)[4]
+  num_plots <- 2 + length(third_plot)
+  mat_RMSE <- matrix(rep(NA, length = num_plots * num_methods), ncol = num_plots)
+  colnames(mat_RMSE) <- c(par_names, third_plot)
+  rownames(mat_RMSE) <- dimnames(results_separate_all)[[4]]
+  
+  par(mar=c(3, 3, 0.1, 1))
+  par(xpd=TRUE) # for legend outside plot region
+  layout(matrix(1:(num_plots + 1), ncol = num_plots + 1))
+  for(i in 1:length(par_names)){
+    # calculate discrepancy between statistic of sample from approximate posterior and
+    # and statistic of sample from true posterior (Stan sample)
+    res_mat <- results_separate_all[ , result, i, ]
+    res_Stan <- as.vector(results_separate_Stan[, result, i])
+    discrepancy <- sweep(res_mat, MARGIN = 1, res_Stan)
+    
+    densities <- plot_discrep(discrepancy, paste(result, par_names[i]))
+    mat_RMSE[ ,i] <- apply(discrepancy, 2, function(x) sqrt(mean(x^2, na.rm = TRUE)))
+  }
+  if(length(third_plot)){
+    # calculate discrepancy between statistic of sample from approximate posterior and
+    # and statistic of sample from true posterior (Stan sample)
+    res_mat <- resultsOverall_all[ , third_plot, ]
+    res_Stan <- as.vector(resultsOverall_Stan[, third_plot])
+    discrepancy <- sweep(res_mat, MARGIN = 1, res_Stan)
+    densities <- plot_discrep(discrepancy, third_plot)
+    mat_RMSE[ ,3] <- apply(discrepancy, 2, function(x) sqrt(mean(x^2, na.rm = TRUE)))
+  }
+  plot.new()  
+  if(m > 1){
+    order <- c(2, 3, 4, 1)
+    #leg_names <- names(densities)[order]
+    leg_names <- c("MBE-E", "MBE-M", "MBM-M", "DBM-M")
+    v_col <- c(2,1,3,4)[order]
+    v_lty <- c(4,2,3, 1)[order]
+  }else{
+    leg_names <- c("Euler", "Milstein")
+    v_col <- c(1,4)
+    v_lty <- c(2,1)
+  }
+  legend("topleft", legend = leg_names, 
+         col = v_col, lty = v_lty,
+         bty = "n", cex = 1, seg.len = 2)
+  mtext(paste0("Based on up to ", sum(!(is.na(discrepancy[,1]))), " results."), side=1, cex = .7)
+  
+  if(m > 1){
+    method_order <- c("MB_td_E_pd_E", "MB_td_M_pd_E",  "MB_td_M_pd_M", "DBM_td_M_pd_M")
+    new_names <- c("MBE-E", "MBE-M", "MBM-M", "DBM-M")
+  }else{
+    method_order <- c("td_E",  "td_M")
+    new_names <- c("Euler", "Milstein")
+  }
+  
+  mat_RMSE <- mat_RMSE[method_order,]
+  rownames(mat_RMSE) <- new_names
+  
+  knitr::kable(mat_RMSE, digits = rep(3, num_plots), caption = "RMSE")
+  
+}
+
+fig_height_2p <- 2.5
+fig_height_3p <- 2.5
+fig_width_2p <- 8
+fig_width_3p <- 8
+```
+The following sections show density plots of the discrepancy between the respective statistic of the samples from the approximated posteriors (sampled with two-step MCMC) and the sample from the true posterior (sampled with Stan) calculated for the `r N` simulated datasets.
+
+#### Posterior mean
+```{r discrepancy_mean, fig.height=fig_height_2p, fig.width=fig_width_2p}
+plot_discrepancy_density(results_separate_all, resultsOverall_all=NULL,
+                         results_separate_Stan, resultsOverall_Stan=NULL, "mean")
+```
+
+#### Posterior median
+```{r discrepancy_median, fig.height=fig_height_2p, fig.width=fig_width_2p}
+plot_discrepancy_density(results_separate_all, resultsOverall_all=NULL,
+                         results_separate_Stan, resultsOverall_Stan=NULL, "median")
+```
+
+#### Posterior variance and covariance
+```{r discrepancy_variance, fig.height=fig_height_3p, fig.width=fig_width_3p}
+plot_discrepancy_density(results_separate_all, resultsOverall_all=resultsOverall_all,
+                         results_separate_Stan, resultsOverall_Stan=resultsOverall_Stan, 
+                         result = "variance", third_plot = "covariance")
+```
+
+#### Number of iterations and effective sample size
+```{r iter_ess}
+measures <-  c("numIterations", "multivarESS")
+measure_array <- resultsOverall_all[ , measures, ]
+
+if(m > 1){
+  method_order <- c("MB_td_E_pd_E", "MB_td_M_pd_E",  "MB_td_M_pd_M", "DBM_td_M_pd_M")
+  new_names <- c("MBE-E", "MBE-M", "MBM-M", "DBM-M")
+}else{
+  method_order <- c("td_E",  "td_M")
+  new_names <- c("Euler", "Milstein")
+}
+
+mat_mean_measures <- apply(measure_array, 2:3, mean, na.rm = TRUE)
+mat_mean_measures <- mat_mean_measures[, method_order]
+colnames(mat_mean_measures) <- new_names
+rownames(mat_mean_measures) <- paste0(rownames(mat_mean_measures) , " mean")
+mat_sd_measures <- apply(measure_array, 2:3, sd, na.rm = TRUE)
+mat_sd_measures <- mat_sd_measures[ , method_order]
+colnames(mat_sd_measures) <- new_names
+rownames(mat_sd_measures) <- paste0(rownames(mat_sd_measures), " sd")
+
+mat_measures <- rbind(mat_mean_measures, mat_sd_measures)
+num_measures <- length(measures)
+new_order <- rep(c(0,num_measures), times = num_measures) + rep(1:num_measures, each = 2)
+mat_measures <- mat_measures[new_order, ]
+
+knitr::kable(t(mat_measures), digits = c(0,0,0,0))
+```
+
+#### Acceptance rates
+
+```{r performance}
+if(m > 1){
+measures <-  c("ARpath", "ARparam")
+measure_array <- resultsOverall_all[ , measures, ]
+
+if(m > 1){
+  method_order <- c("MB_td_E_pd_E", "MB_td_M_pd_E",  "MB_td_M_pd_M", "DBM_td_M_pd_M")
+  new_names <- c("MBE-E", "MBE-M", "MBM-M", "DBM-M")
+}else{
+  method_order <- c("td_E",  "td_M")
+  new_names <- c("Euler", "Milstein")
+}
+
+
+mat_mean_measures <- apply(measure_array, 2:3, mean, na.rm = TRUE)
+mat_mean_measures <- mat_mean_measures[, method_order]
+colnames(mat_mean_measures) <- new_names
+rownames(mat_mean_measures) <- paste0(rownames(mat_mean_measures), " mean")
+mat_sd_measures <- apply(measure_array, 2:3, sd, na.rm = TRUE)
+mat_sd_measures <- mat_sd_measures[ , method_order]
+colnames(mat_sd_measures) <- new_names
+rownames(mat_sd_measures) <- paste0(rownames(mat_sd_measures), " sd")
+
+mat_measures <- rbind(mat_mean_measures, mat_sd_measures)
+num_measures <- length(measures)
+new_order <- rep(c(0,num_measures), times = num_measures) + rep(1:num_measures, each = 2)
+mat_measures <- mat_measures[new_order, ]
+
+knitr::kable(t(mat_measures), digits = c(3,3,3,3))
+}else{
+measures <-  c("ARparam")
+measure_array <- resultsOverall_all[ , measures, ]
+
+mat_mean_measures <- apply(measure_array, 2, mean, na.rm = TRUE)
+mat_sd_measures <- apply(measure_array, 2, sd, na.rm = TRUE)
+
+mat_measures <- rbind(mat_mean_measures, mat_sd_measures)
+rownames(mat_measures) <- paste0(measures, c(" mean", " sd"))
+
+knitr::kable(t(mat_measures), digits = c(3,3))
+}
+
+```
+
