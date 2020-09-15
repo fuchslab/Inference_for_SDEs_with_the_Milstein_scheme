@@ -1,5 +1,8 @@
 # CF13 p. 178-179
-# simulation of an Ornstein-Uhlenbeck process which fulfills the SDE dX_t = alpha*(beta-X_t)dt + sigma*dB_t, X_0=x_0
+# simulation of the Geometric Brownian motion
+#
+#  which fulfills the SDE dX_t = alpha*X_t*dt + sigma*X_t*dB_t, x_0=x_0
+
 
 source("main_functions/functions_for_parameter_estimation.R")
 source("main_functions/GBM_problem_specific_parameter_and_functions.R")
@@ -52,7 +55,7 @@ if(save_plots){
 }
 
 par(mar=c(2, .2, .2, .2))
-plot(t, Y_euler[1,], type='l', ylim = yaxis, xlim = xaxis, 
+plot(t, Y_euler[1,], type='l', ylim = yaxis, xlim = xaxis,
      xlab = '', ylab = '', yaxt = 'n', xaxt = 'n')
 for (j in 2:n) # paths
 { lines(t,Y_euler[j,])
@@ -82,7 +85,7 @@ if(save_plots){
   }
 }
 par(mar=c(2, .2, .2, .2))
-plot(t, Y_MB[1,], type = 'l', ylim = yaxis, xlim = xaxis, xlab = '', ylab = '', 
+plot(t, Y_MB[1,], type = 'l', ylim = yaxis, xlim = xaxis, xlab = '', ylab = '',
      yaxt = 'n', xaxt = 'n')
 for (j in 2:n) # paths
 { lines(t,Y_MB[j,])
@@ -119,7 +122,7 @@ if(save_plots){
 }
 
 par(mar=c(2, .2, .2, .2))
-plot(t, Y_Miltein[1,], type = 'l', ylim = yaxis, xlim = xaxis, xlab = '', 
+plot(t, Y_Miltein[1,], type = 'l', ylim = yaxis, xlim = xaxis, xlab = '',
      ylab = '', yaxt = 'n', xaxt = 'n')
 for (j in 2:n) # paths
 { lines(t,Y_Miltein[j,])

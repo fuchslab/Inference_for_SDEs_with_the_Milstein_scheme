@@ -5,9 +5,10 @@ library(stringr)
 filetype <- "pdf" # "eps", "pdf"
 save_plots <- TRUE
 
+l_width <- 1.5
 
 # folder containing the file with obvervations
-obsFolder <- "CIR_alpha_1_beta_1_sigma_2_x0_10" #"GBM_alpha_1_sigma_2_x0_100" #   CIR_alpha_1_beta_1_sigma_0.25_x0_3  CIR_alpha_1_beta_1_sigma_2_x0_10  
+obsFolder <- "GBM_alpha_1_sigma_2_x0_100" #"GBM_alpha_1_sigma_2_x0_100" #   CIR_alpha_1_beta_1_sigma_0.25_x0_3  CIR_alpha_1_beta_1_sigma_2_x0_10  
 M <- 20
 
 v_m <- c(1, 2,5) 
@@ -86,11 +87,13 @@ aggregated_discr_plots <- function(obsFolder, M, m, param_index, xlim){
     y_range <- range(unlist(lapply(densities, function(x) x[["y"]])))
     
     if(m > 1){
-      v_col <- c(2,1,3,4)
-      v_lty <- c(4,2,3, 1)
+      v_col <- c(2,1,'#1b9e77',4)
+      v_lty <- c(4,3,2, 1)
+      v_l_width <- c(l_width, l_width, l_width, 1)
     }else{
       v_col <- c(1,4)
-      v_lty <- c(2,1)
+      v_lty <- c(3,1)
+      v_l_width <- c(l_width, 1)
     }
     
     # plot the densities of the diffferent methods in the same window
@@ -105,7 +108,8 @@ aggregated_discr_plots <- function(obsFolder, M, m, param_index, xlim){
     num_methods <- length(densities)
 
     for(l in 1:num_methods){
-      lines(densities[[l]], col = v_col[l], lty = v_lty[l], xlim = xlim[[result]])
+      lines(densities[[l]], col = v_col[l], lty = v_lty[l], xlim = xlim[[result]],
+            lwd = v_l_width[l])
     }
     return(densities)
   }
@@ -136,16 +140,18 @@ aggregated_discr_plots <- function(obsFolder, M, m, param_index, xlim){
     order <- c(2, 3, 4, 1)
     #leg_names <- names(densities)[order]
     leg_names <- c("MBE-E", "MBE-M", "MBM-M", "DBM-M")
-    v_col <- c(2,1,3,4)[order]
-    v_lty <- c(4,2,3, 1)[order]
+    v_col <- c(2,1,'#1b9e77',4)[order]
+    v_lty <- c(4,3,2, 1)[order]
+    v_l_width <- c(l_width, l_width, l_width, l_width)[order]
   }else{
     leg_names <- c("Euler", "Milstein")
     v_col <- c(1,4)
-    v_lty <- c(2,1)
+    v_lty <- c(3,1)
+    v_l_width <- c(l_width, l_width)
   }
   legend("topleft", legend = leg_names, 
          col = v_col, lty = v_lty,
-         bty = "n", cex = 1, seg.len = 2, inset=c(-5,0))
+         bty = "n", cex = 1, seg.len = 2, inset=c(-5,0), lwd = v_l_width)
   par(xpd=FALSE)
   #mtext(paste0("Based on up to ", sum(!(is.na(discrepancy[,1]))), " results."), side=1, cex = .7)
   
@@ -162,11 +168,9 @@ if(save_plots){
   if(model_type == "GBM"){
     file_name <- paste0("figures_and_tables/Fig_8_discrepancy_dens_plots_GBM_alpha_M_", M,
                         "_alpha_", true_values[1], "_sigma2_", true_values[2])
-    xlim <- list(mean = c(-2,1), median = c(-2,1), variance = c(-3,1))
   }else if(model_type == "CIR"){
     file_name <- paste0("figures_and_tables/Fig_D1_discrepancy_dens_plots_CIR_alpha_M_", M,
                         "_beta_", true_values[1], "_sigma2_", true_values[2]) 
-    xlim <- list(mean = c(-.08,.08), median = c(-.06,.06), variance = c(-.2,.2))
   }
   if(filetype == "pdf"){
     pdf(paste0(file_name, ".pdf"), width = window_width, height = window_height)
@@ -174,6 +178,12 @@ if(save_plots){
     setEPS()
     postscript(paste0(file_name, ".eps"), width = window_width, height = window_height)
   }
+}
+
+if(model_type == "GBM"){
+  xlim <- list(mean = c(-2,1), median = c(-2,1), variance = c(-3,1))
+}else if(model_type == "CIR"){
+  xlim <- list(mean = c(-.08,.08), median = c(-.06,.06), variance = c(-.2,.2))
 }
 
 par(mar=c(3.1, 4.5, 2.6, 1))
@@ -192,11 +202,9 @@ if(save_plots){
   if(model_type == "GBM"){
     file_name <- paste0("figures_and_tables/Fig_9_discrepancy_dens_plots_GBM_sigma2_M_", M,
                         "_alpha_", true_values[1], "_sigma2_", true_values[2])
-    xlim <- list(mean = c(-.7,.7), median = c(-.7,.7), variance = c(-0.4,.4))
   }else if(model_type == "CIR"){
     file_name <- paste0("figures_and_tables/Fig_D2_discrepancy_dens_plots_CIR_sigma2_M_", M,
                         "_beta_", true_values[1], "_sigma2_", true_values[2]) 
-    xlim <- list(mean = c(-.3,.1), median = c(-.3,.1), variance = c(-.3,.15))
   }
   if(filetype == "pdf"){
     pdf(paste0(file_name, ".pdf"), width = window_width, height = window_height)
@@ -204,6 +212,12 @@ if(save_plots){
     setEPS()
     postscript(paste0(file_name, ".eps"), width = window_width, height = window_height)
   }
+}
+
+if(model_type == "GBM"){
+  xlim <- list(mean = c(-.7,.7), median = c(-.7,.7), variance = c(-0.4,.4))
+}else if(model_type == "CIR"){
+  xlim <- list(mean = c(-.3,.1), median = c(-.3,.1), variance = c(-.3,.15))
 }
 
 
