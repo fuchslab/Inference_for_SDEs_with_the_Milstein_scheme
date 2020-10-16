@@ -1,7 +1,7 @@
 # Inference for SDEs with the Milstein scheme
 This repository accompanies the article 
 
-Susanne Pieschner, Christiane Fuchs (2020) *"Bayesian Inference for Diffusion Processes: Using Higher-Order Approximations for Transition Densities"*. Royal Society Open Science, 7(10), 200270. 
+Pieschner, S. & Fuchs, C. (2020). Bayesian inference for diffusion processes: using higher-order approximations for transition densities. *Royal Society Open Science*, 7(10), 200270. 
 
 available at [https://royalsocietypublishing.org/doi/10.1098/rsos.200270](https://royalsocietypublishing.org/doi/10.1098/rsos.200270).
 
