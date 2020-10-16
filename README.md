@@ -11,7 +11,7 @@ Modelling random dynamical systems in continuous time, diffusion processes are a
 
 
 ### *main_functions*
-The R-files in the folder *main_functions* implement the parameter estimation methods as described in Pieschner, Fuchs (2018) Section 3.
+The R-files in the folder *main_functions* implement the parameter estimation methods as described in Pieschner, Fuchs (2020) Section 3.
 
 * `parameter_estimation.R` -- contains the function `estimate_parameters(methodPathUpdate, methodParamUpdate, approxTransDens, approxPropDens, numIterations, m, Y_obs, tau)` that performs the main steps of the estimation algorithm
 * `functions_for_parameter_estimation.R` -- contains the general functions used inside the `estimate_parameters()`-function:
