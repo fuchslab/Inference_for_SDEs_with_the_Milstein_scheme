@@ -40,7 +40,7 @@ Due to dependencies, the R-files need to be sourced in the following order:
 The folder *simulation_study* contains the R-files, input and (aggregated) output files from the simulation study in Section 5 and Appendix D.
 
 * The simulation study was run on a computational grid which is managed with SLURM. The bash scripts `*.sh` were used to submit the individual jobs to the queue of this grid in a loop for the different parameter settings. The computational environment within which the R files were executed is described in `dockerfile_r3.6.2_rstan_rmd_rutils`.
-* `observation_generation_GBM.R` (/`observation_generation_CIR.R`) was used to sample the 100 trajectories of the GBM (/CIR) which are saved in one data file `GBM_obs.data` (`GBM_obs.data`) in the folder *GBM_alpha_1_sigma_2_x0_100* (/*CIR_alpha_1_beta_1_sigma_2_x0_10*) along with plots of the trajectories
+* `observation_generation_GBM.R` (/`observation_generation_CIR.R`) was used to sample the 100 trajectories of the GBM (/CIR) which are saved in one data file `GBM_obs.data` (`CIR_obs.data`) in the folder *GBM_alpha_1_sigma_2_x0_100* (/*CIR_alpha_1_beta_1_sigma_2_x0_10*) along with plots of the trajectories
 * `main_simulation_study.R` performs one estimation procedure for the parameters that are passed to it when the script is run and saves a data file of the output to *GBM_alpha_1_sigma_2/output* (/*CIR_alpha_1_beta_1_sigma_0.25/output*)
 * `aggregate_output.R`was used to aggregate the results from the individual jobs saved in *GBM_alpha_1_sigma_2/output* (/*CIR_alpha_1_beta_1_sigma_0.25/output*) and save them to the folder *aggregated_output*.
 * The folder *Stan* contains all files needed to sample from the true posterior distribution using the Stan software.
